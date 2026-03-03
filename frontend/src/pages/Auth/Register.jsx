@@ -22,6 +22,38 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  const extractErrorMessage = (err) => {
+    if (err?.response?.data) {
+      const data = err.response.data;
+
+      if (Array.isArray(data?.details) && data.details.length > 0) {
+        return data.details[0].message;
+      }
+
+      if (Array.isArray(data?.error?.details) && data.error.details.length > 0) {
+        return data.error.details[0].message;
+      }
+
+      if (typeof data?.message === 'string' && data.message.trim()) {
+        return data.message;
+      }
+
+      if (typeof data === 'string' && data.trim()) {
+        return data;
+      }
+    }
+
+    if (err?.request && !err?.response) {
+      return 'Unable to reach the server. Check that the backend is running and API URL is correct.';
+    }
+
+    if (typeof err?.message === 'string' && err.message.trim()) {
+      return err.message;
+    }
+
+    return 'Registration failed. Please try again.';
+  };
+
   // Password policy aligned with backend default:
   // min 10 chars, at least one uppercase, one lowercase, one digit
   const validatePasswordStrength = (password) => {
@@ -85,11 +117,11 @@ export default function Register() {
 
     try {
       await api.post('/auth/register', {
-        name: form.name,
-        email: form.email,
+        name: form.name.trim(),
+        email: form.email.trim().toLowerCase(),
         password: form.password,
         verify_password: form.confirmPassword,
-        cellphone_number: form.phone,
+        cellphone_number: form.phone.trim(),
         role: form.role.toUpperCase(),
       });
 
@@ -97,17 +129,7 @@ export default function Register() {
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
       console.error('Registration error:', err);
-      let msg = 'Registration failed. Please try again.';
-      if (err.response?.data) {
-        if (err.response.data.message) {
-          msg = err.response.data.message;
-        } else if (err.response.data.error?.details?.length) {
-          msg = err.response.data.error.details[0].message;
-        } else if (typeof err.response.data === 'string') {
-          msg = err.response.data;
-        }
-      }
-      toast.error(msg);
+      toast.error(extractErrorMessage(err));
     } finally {
       setLoading(false);
     }
