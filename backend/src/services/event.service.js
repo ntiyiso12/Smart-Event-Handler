@@ -194,7 +194,7 @@ const listPublicEvents = async (queryOptions) => {
         };
     }
     if (themeName) {
-        whereClause.Theme = {
+        whereClause.theme = {
             name: { contains: themeName, mode: 'insensitive' },
         };
     }
@@ -207,7 +207,7 @@ const listPublicEvents = async (queryOptions) => {
         include: {
             venue: { select: { name: true, location: true } },
             organizer: { select: { id: true, name: true } },
-            Theme: { select: { name: true } },
+            theme: { select: { name: true } },
             ticketDefinitions: {
                 where: { deletedAt: null },
                 select: { id: true, name: true, price: true, quantity: true },
@@ -291,7 +291,7 @@ const getEventById = async (eventId) => {
     include: {
       venue: { include: { tools: true } },
       organizer: { select: { id: true, name: true, email: true } },
-      Theme: { 
+            theme: { 
         select: { 
           id: true,
           name: true,
